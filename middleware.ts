@@ -20,9 +20,7 @@ export async function middleware(req: NextRequest) {
   })
   let user = null
   try { user = (await sb.auth.getUser()).data.user } catch { return res }
-  if (!user && !req.nextUrl.pathname.startsWith('/login') && !req.nextUrl.pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL('/login', req.url))
-  }
+  if (!user && !req.nextUrl.pathname.startsWith('/login') && !req.nextUrl.pathname.startsWith('/auth')) return NextResponse.redirect(new URL('/login', req.url))
   return res
 }
 

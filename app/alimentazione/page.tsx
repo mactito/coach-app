@@ -1,4 +1,5 @@
 import Shell, { clientLinks } from '@/components/Shell'
+import Hero from '@/components/Hero'
 import NutritionView from '@/components/NutritionView'
 import { requireRole } from '@/lib/auth'
 import { DEFAULT_TARGET, todayIndex, type Meal } from '@/lib/nutrition'
@@ -12,8 +13,7 @@ export default async function Alimentazione() {
   const meals = (m.data ?? []) as Meal[]
   return (
     <Shell links={clientLinks}>
-      <h1>Piano alimentare</h1>
-      <p className="mu">Impostato da Coach Raphi · piano di 7 giorni</p>
+      <Hero k="food" title="Piano alimentare" sub="Impostato da Coach Raphi · piano di 7 giorni" />
       {meals.length === 0 ? <p className="mu" style={{ marginTop: 14 }}>Raphi non ha ancora creato il tuo piano alimentare.</p>
         : <NutritionView meals={meals} target={t.data ?? DEFAULT_TARGET} startDay={todayIndex()} />}
     </Shell>

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export const todayRome = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' })
+export { todayRome } from '@/lib/dates'
 
 export async function requireRole(role: 'trainer' | 'client') {
   const sb = await createClient()

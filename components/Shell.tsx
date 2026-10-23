@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Nav, { type NavLink } from '@/components/Nav'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -9,17 +9,27 @@ async function logout() {
   redirect('/login')
 }
 
-export default function Shell({ links, children, chat }: { links: { href: string; label: string }[]; children: React.ReactNode; chat?: boolean }) {
+export default function Shell({ links, children, chat }: { links: NavLink[]; children: React.ReactNode; chat?: boolean }) {
   return (
     <>
       <div className={chat ? 'scr ch' : 'scr'}>
         <form action={logout}><button className="back" type="submit">Esci</button></form>
         {children}
       </div>
-      <nav>{links.map(l => <Link key={l.href} href={l.href}>{l.label}</Link>)}</nav>
+      <Nav links={links} />
     </>
   )
 }
 
-export const trainerLinks = [{ href: '/trainer', label: 'Clienti' }, { href: '/trainer/workouts', label: 'Allenamenti' }, { href: '/trainer/chat', label: 'Messaggi' }]
-export const clientLinks = [{ href: '/oggi', label: 'Oggi' }, { href: '/alimentazione', label: 'Alimentazione' }, { href: '/chat', label: 'Chat' }]
+export const trainerLinks: NavLink[] = [
+  { href: '/trainer', label: 'Clienti', icon: 'users' },
+  { href: '/trainer/workouts', label: 'Allenamenti', icon: 'build' },
+  { href: '/trainer/chat', label: 'Messaggi', icon: 'chat' },
+]
+export const clientLinks: NavLink[] = [
+  { href: '/oggi', label: 'Oggi', icon: 'today' },
+  { href: '/progressi', label: 'Progressi', icon: 'prog' },
+  { href: '/foto', label: 'Foto', icon: 'cam' },
+  { href: '/chat', label: 'Chat', icon: 'chat' },
+  { href: '/alimentazione', label: 'Piano', icon: 'food' },
+]

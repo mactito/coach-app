@@ -9,12 +9,17 @@ Real accounts, a database, live chat and per-user security. The interface is in 
 - **Client:** today's workout with set logging saved to the database; their 7-day meal plan; live chat with Raphi.
 - **Security:** database rules (row-level security). A client can only read their own workouts, plan and messages. Only the trainer can create workouts and plans.
 
+## Also included (matches the prototype)
+- Photo banners and a login hero. Put image files in `public/images/` and write their paths in `lib/images.ts` (`login`, `workout`, `coach`, `food`). Empty slots show gradient placeholders.
+- Trainer: client cards with search and filters, "In regola / Da sentire" status and a week of dots; per-client page with week strip, progress chart, scheduled workouts, check-in photos, chat and nutrition plan; edit and duplicate workouts, video link per exercise.
+- Client: Mon-Sun strip on Oggi (tap a day to preview it; only today can be logged), rest timer, "Com'è andata?" comment sent to Raphi's chat, Progressi tab, Foto tab (before/after, stored privately), Piano and Chat tabs.
+
 ## Not built yet
-Check-in photos, rest timer, progress charts, weekly calendar view for clients, password reset, push notifications, payments.
+Password reset, push notifications, payments, invite-only sign-up, account deletion.
 
 ## Setup
 1. Create a project at supabase.com.
-2. In **SQL Editor**, run `supabase/schema.sql`, then `supabase/02_nutrition_chat.sql`.
+2. In **SQL Editor**, run these in order: `supabase/schema.sql`, `supabase/02_nutrition_chat.sql`, `supabase/03_photos.sql`. (If you already ran the first two, run only the third.)
 3. **Project Settings > API:** copy the URL and anon key into `.env.local` (copy `.env.local.example`).
 4. `npm install` then `npm run dev`, open http://localhost:3000
 5. Sign up with Raphi's email.
