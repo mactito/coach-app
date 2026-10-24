@@ -25,6 +25,7 @@ export const trainerLinks: NavLink[] = [
   { href: '/trainer', label: 'Clienti', icon: 'users' },
   { href: '/trainer/workouts', label: 'Allenamenti', icon: 'build' },
   { href: '/trainer/chat', label: 'Messaggi', icon: 'chat' },
+  { href: '/trainer/nutrition', label: 'Alimentazione', icon: 'food' },
 ]
 export const clientLinks: NavLink[] = [
   { href: '/oggi', label: 'Oggi', icon: 'today' },

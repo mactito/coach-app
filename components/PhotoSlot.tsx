@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from '@/lib/toast'
 
 export default function PhotoSlot({ kind, label, url, at, userId }: { kind: 'before' | 'after'; label: string; url?: string; at?: string; userId: string }) {
   const sb = createClient()
@@ -21,6 +22,7 @@ export default function PhotoSlot({ kind, label, url, at, userId }: { kind: 'bef
     const ins = await sb.from('checkin_photos').insert({ kind, path })
     setBusy(false)
     if (ins.error) return setErr(ins.error.message)
+    toast('Foto salvata. Coach Raphi la vede nel tuo profilo.')
     router.refresh()
   }
 

@@ -9,10 +9,12 @@ Real accounts, a database, live chat and per-user security. The interface is in 
 - **Client:** today's workout with set logging saved to the database; their 7-day meal plan; live chat with Raphi.
 - **Security:** database rules (row-level security). A client can only read their own workouts, plan and messages. Only the trainer can create workouts and plans.
 
-## Also included (matches the prototype)
-- Photo banners and a login hero. Put image files in `public/images/` and write their paths in `lib/images.ts` (`login`, `workout`, `coach`, `food`). Empty slots show gradient placeholders.
-- Trainer: client cards with search and filters, "In regola / Da sentire" status and a week of dots; per-client page with week strip, progress chart, scheduled workouts, check-in photos, chat and nutrition plan; edit and duplicate workouts, video link per exercise.
-- Client: Mon-Sun strip on Oggi (tap a day to preview it; only today can be logged), rest timer, "Com'è andata?" comment sent to Raphi's chat, Progressi tab, Foto tab (before/after, stored privately), Piano and Chat tabs.
+## Same look and behaviour as the prototype
+- The stylesheet `app/globals.css` is the prototype's `style.css`, plus a few rules for links. The screens use the same class names, so the look matches.
+- Bottom sheets (add exercise, create exercise, assign to clients, video demo, "Com'è andata?"), toast messages, and +/- steppers work as in the prototype.
+- Photo banners and the login hero: put image files in `public/images/` and write their paths in `lib/images.ts` (`login`, `workout`, `coach`, `food`). Empty slots show gradient placeholders.
+- Trainer: Clienti (cards with search, filters, status and week dots), client page (week, last workout, progress chart, scheduled workouts, photos, assign workout, message, nutrition plan), Allenamenti (build, edit, save as copy, assign to several clients), Messaggi, Alimentazione.
+- Client: Oggi with a Mon-Sun strip and week arrows, "Ultima volta" column, rest timer, finish sheet; Progressi; Foto; Chat; Piano.
 
 ## Not built yet
 Password reset, push notifications, payments, invite-only sign-up, account deletion.

@@ -12,7 +12,7 @@ export default async function Workouts() {
   return (
     <Shell links={trainerLinks}>
       <h1>Allenamenti</h1>
-      <p className="mu">Crea un allenamento una volta, assegnalo a quanti clienti vuoi.</p>
+      <p className="mu">Crea un allenamento una volta, assegnalo a chi vuoi.</p>
       <WorkoutsClient exercises={ex.data ?? []} clients={cl.data ?? []} workouts={wo.data ?? []} />
     </Shell>
   )

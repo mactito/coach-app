@@ -7,7 +7,7 @@ export default async function ClientChat() {
   const { data } = await sb.from('messages').select('id, sender_id, body, created_at').eq('client_id', user.id).order('created_at').limit(300)
   return (
     <Shell links={clientLinks} chat>
-      <div className="chh"><h3>Coach Raphi</h3><p className="mu">Scrivi qui domande e commenti sugli allenamenti.</p></div>
+      <div className="chh"><div className="eh" style={{ justifyContent: 'flex-start', gap: 12 }}><span className="av">R</span><div><h3>Coach Raphi</h3><p className="mu">Chiedi pure, ti risponde appena può</p></div></div></div>
       <Chat clientId={user.id} meId={user.id} initial={data ?? []} />
     </Shell>
   )
