@@ -136,3 +136,5 @@ nav a.on{color:var(--ac)}
 .dys a.hs{box-shadow:inset 0 -3px 0 var(--ok)}
 .dys a.tdy{border-color:var(--ac)}
 .rtfix{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;width:min(396px,calc(100% - 24px));z-index:20}
+.dys a.dn:not(.on){background:var(--oks);border-color:var(--oks);color:var(--ok)}
+.dys a.ms:not(.on){background:var(--wns);border-color:var(--wns);color:var(--wn)}

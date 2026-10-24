@@ -15,7 +15,7 @@ type Wo = { id: string; name: string; workout_exercises: WE[] }
 type Item = { id: string; exercise_id: string; name: string; sets: number; reps: number; video_url: string }
 const uid = () => crypto.randomUUID()
 
-export default function WorkoutsClient({ exercises, clients, workouts }: { exercises: Ex[]; clients: Cl[]; workouts: Wo[] }) {
+export default function WorkoutsClient({ exercises, clients, workouts, usedIds }: { exercises: Ex[]; clients: Cl[]; workouts: Wo[]; usedIds: string[] }) {
   const sb = createClient()
   const router = useRouter()
   const [editId, setEditId] = useState<string | null>(null)
@@ -51,6 +51,17 @@ export default function WorkoutsClient({ exercises, clients, workouts }: { exerc
     if (!name.trim() || !items.length) return toast('Scrivi un nome e aggiungi almeno un esercizio.')
     const inPlace = !!editId && !asNew
     const title = asNew && editId && name.trim() === workouts.find(w => w.id === editId)?.name ? `${name.trim()} (copia)` : name.trim()
+    if (inPlace && usedIds.includes(editId!)) {
+      // Already done by clients: save as a new version so past sessions stay exactly as they were.
+      const { data, error } = await sb.from('workouts').insert({ name: title }).select('id').single()
+      if (error || !data) return toast(error?.message ?? 'Errore')
+      const vrows = items.map((it, i) => ({ id: uid(), workout_id: data.id, exercise_id: it.exercise_id, position: i, sets: it.sets, reps: it.reps, video_url: it.video_url.trim() || null }))
+      const ev = (await sb.from('workout_exercises').insert(vrows)).error
+      if (ev) return toast(ev.message)
+      const er = (await sb.rpc('replace_workout', { old_id: editId, new_id: data.id })).error
+      if (er) return toast(er.message)
+      reset(); toast('Nuova versione salvata. Le sedute già fatte restano com’erano, i prossimi allenamenti usano quella aggiornata.'); router.refresh(); return
+    }
     let wid = inPlace ? editId : null
     if (inPlace) {
       const { error } = await sb.from('workouts').update({ name: title }).eq('id', wid!)
@@ -70,6 +81,13 @@ export default function WorkoutsClient({ exercises, clients, workouts }: { exerc
     }
     reset(); toast(`“${title}” salvato. Assegnalo a qualsiasi cliente da qui sotto.`); router.refresh()
   }
+  async function remove(w: Wo) {
+    if (!confirm(`Eliminare “${w.name}”?\n\nLe sedute già fatte restano nello storico dei clienti. Gli allenamenti futuri assegnati con questo modello verranno rimossi.`)) return
+    const { error } = await sb.rpc('delete_workout', { wid: w.id })
+    if (error) return toast(error.message)
+    if (editId === w.id) reset()
+    toast(`“${w.name}” eliminato`); router.refresh()
+  }
   async function assign() {
     if (!at || !ids.length) return
     const rows = ids.map(client_id => ({ workout_id: at.id, client_id, scheduled_on: date }))
@@ -84,6 +102,7 @@ export default function WorkoutsClient({ exercises, clients, workouts }: { exerc
     <>
       <section className="card">
         <div className="eh"><h3>{editId ? 'Modifica allenamento' : 'Nuovo allenamento'}</h3>{editId && <button className="x" onClick={reset}>Annulla</button>}</div>
+        {editId && usedIds.includes(editId) && <p className="mu" style={{ marginTop: 6 }}>Questo allenamento è già stato svolto: le modifiche creano una nuova versione e non cambiano le sedute passate.</p>}
         <input className="tn" placeholder="Nome dell’allenamento, es. Giorno schiena" aria-label="Nome dell’allenamento" value={name} onChange={e => setName(e.target.value)} />
         {items.map((it, i) => (
           <div key={it.id} className="card" style={{ background: 'var(--bg)' }}>
@@ -107,6 +126,7 @@ export default function WorkoutsClient({ exercises, clients, workouts }: { exerc
             <button className="btn s" onClick={() => edit(w)}>Modifica</button>
             <button className="btn" onClick={() => { setAt(w); setIds([]); setSheet('wasg') }}>Assegna</button>
           </div>
+          <button className="x" style={{ marginTop: 10 }} onClick={() => remove(w)}>Elimina allenamento</button>
         </section>
       ))}
 

@@ -16,12 +16,17 @@ Real accounts, a database, live chat and per-user security. The interface is in 
 - Trainer: Clienti (cards with search, filters, status and week dots), client page (week, last workout, progress chart, scheduled workouts, photos, assign workout, message, nutrition plan), Allenamenti (build, edit, save as copy, assign to several clients), Messaggi, Alimentazione.
 - Client: Oggi with a Mon-Sun strip and week arrows, "Ultima volta" column, rest timer, finish sheet; Progressi; Foto; Chat; Piano.
 
+## Deleting and editing plans
+- **Delete a workout** (Allenamenti > Elimina): it disappears from the library and from clients' future days, but sessions clients already did stay in their history.
+- **Client page > week view:** the trainer can open any day. Past or started days are read-only and show what the client actually logged. Today (if not started) and future days can be edited for that client only: change sets and reps, add or remove exercises, swap the workout, or remove it from the day. Shared workout models are never changed by this.
+- **Editing a model that clients have already done** saves a new version, so past sessions stay as they were.
+
 ## Not built yet
 Password reset, push notifications, payments, invite-only sign-up, account deletion.
 
 ## Setup
 1. Create a project at supabase.com.
-2. In **SQL Editor**, run these in order: `supabase/schema.sql`, `supabase/02_nutrition_chat.sql`, `supabase/03_photos.sql`. (If you already ran the first two, run only the third.)
+2. In **SQL Editor**, run these in order: `supabase/schema.sql`, `supabase/02_nutrition_chat.sql`, `supabase/03_photos.sql`, `supabase/04_plan_edit.sql`. If you already ran some of them, run only the new ones. 
 3. **Project Settings > API:** copy the URL and anon key into `.env.local` (copy `.env.local.example`).
 4. `npm install` then `npm run dev`, open http://localhost:3000
 5. Sign up with Raphi's email.
