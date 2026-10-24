@@ -22,15 +22,14 @@ export default function Shell({ links, children, chat }: { links: NavLink[]; chi
 }
 
 export const trainerLinks: NavLink[] = [
-  { href: '/trainer', label: 'Clienti', icon: 'users' },
+  { href: '/trainer', label: 'Home', icon: 'home' },
+  { href: '/trainer/clients', label: 'Clienti', icon: 'users' },
   { href: '/trainer/workouts', label: 'Allenamenti', icon: 'build' },
   { href: '/trainer/chat', label: 'Messaggi', icon: 'chat' },
-  { href: '/trainer/nutrition', label: 'Alimentazione', icon: 'food' },
 ]
 export const clientLinks: NavLink[] = [
   { href: '/oggi', label: 'Oggi', icon: 'today' },
   { href: '/progressi', label: 'Progressi', icon: 'prog' },
-  { href: '/foto', label: 'Foto', icon: 'cam' },
   { href: '/chat', label: 'Chat', icon: 'chat' },
   { href: '/alimentazione', label: 'Piano', icon: 'food' },
 ]

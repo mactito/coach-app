@@ -10,15 +10,16 @@ import { todayRome, weekdayName } from '@/lib/dates'
 
 type Ex = { id: string; name: string; muscle: string | null; video_url: string | null }
 type Cl = { id: string; full_name: string | null }
-type WE = { id: string; exercise_id: string; sets: number; reps: number; video_url: string | null; position: number }
+type WE = { id: string; exercise_id: string; sets: number; reps: number; rest_seconds: number; video_url: string | null; position: number }
 type Wo = { id: string; name: string; workout_exercises: WE[] }
-type Item = { id: string; exercise_id: string; name: string; sets: number; reps: number; video_url: string }
+type Item = { id: string; exercise_id: string; name: string; sets: number; reps: number; rest_seconds: number; video_url: string }
 const uid = () => crypto.randomUUID()
 
 export default function WorkoutsClient({ exercises, clients, workouts, usedIds }: { exercises: Ex[]; clients: Cl[]; workouts: Wo[]; usedIds: string[] }) {
   const sb = createClient()
   const router = useRouter()
   const [editId, setEditId] = useState<string | null>(null)
+  const [building, setBuilding] = useState(false)
   const [name, setName] = useState('')
   const [items, setItems] = useState<Item[]>([])
   const [sheet, setSheet] = useState<null | 'lib' | 'new' | 'wasg'>(null)
@@ -29,16 +30,16 @@ export default function WorkoutsClient({ exercises, clients, workouts, usedIds }
   const [date, setDate] = useState(todayRome())
   const exName = (id: string) => exercises.find(e => e.id === id)?.name ?? ''
   const patch = (i: number, p: Partial<Item>) => setItems(items.map((it, k) => (k === i ? { ...it, ...p } : it)))
-  const reset = () => { setEditId(null); setName(''); setItems([]) }
+  const reset = () => { setEditId(null); setBuilding(false); setName(''); setItems([]) }
   const add = (x: { id: string; name: string; video_url: string | null }) => {
-    setItems([...items, { id: uid(), exercise_id: x.id, name: x.name, sets: 3, reps: 10, video_url: x.video_url ?? '' }])
+    setItems([...items, { id: uid(), exercise_id: x.id, name: x.name, sets: 3, reps: 10, rest_seconds: 90, video_url: x.video_url ?? '' }])
     setSheet(null); toast(`“${x.name}” aggiunto`)
   }
   const shown = exercises.filter(e => (e.name + (e.muscle ?? '')).toLowerCase().includes(q.toLowerCase()))
 
   function edit(w: Wo) {
     setEditId(w.id); setName(w.name)
-    setItems([...w.workout_exercises].sort((a, b) => a.position - b.position).map(e => ({ id: e.id, exercise_id: e.exercise_id, name: exName(e.exercise_id), sets: e.sets, reps: e.reps, video_url: e.video_url ?? '' })))
+    setItems([...w.workout_exercises].sort((a, b) => a.position - b.position).map(e => ({ id: e.id, exercise_id: e.exercise_id, name: exName(e.exercise_id), sets: e.sets, reps: e.reps, rest_seconds: e.rest_seconds, video_url: e.video_url ?? '' })))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   async function createEx() {
@@ -55,7 +56,7 @@ export default function WorkoutsClient({ exercises, clients, workouts, usedIds }
       // Already done by clients: save as a new version so past sessions stay exactly as they were.
       const { data, error } = await sb.from('workouts').insert({ name: title }).select('id').single()
       if (error || !data) return toast(error?.message ?? 'Errore')
-      const vrows = items.map((it, i) => ({ id: uid(), workout_id: data.id, exercise_id: it.exercise_id, position: i, sets: it.sets, reps: it.reps, video_url: it.video_url.trim() || null }))
+      const vrows = items.map((it, i) => ({ id: uid(), workout_id: data.id, exercise_id: it.exercise_id, position: i, sets: it.sets, reps: it.reps, rest_seconds: it.rest_seconds, video_url: it.video_url.trim() || null }))
       const ev = (await sb.from('workout_exercises').insert(vrows)).error
       if (ev) return toast(ev.message)
       const er = (await sb.rpc('replace_workout', { old_id: editId, new_id: data.id })).error
@@ -71,7 +72,7 @@ export default function WorkoutsClient({ exercises, clients, workouts, usedIds }
       if (error || !data) return toast(error?.message ?? 'Errore')
       wid = data.id
     }
-    const rows = items.map((it, i) => ({ id: inPlace ? it.id : uid(), workout_id: wid, exercise_id: it.exercise_id, position: i, sets: it.sets, reps: it.reps, video_url: it.video_url.trim() || null }))
+    const rows = items.map((it, i) => ({ id: inPlace ? it.id : uid(), workout_id: wid, exercise_id: it.exercise_id, position: i, sets: it.sets, reps: it.reps, rest_seconds: it.rest_seconds, video_url: it.video_url.trim() || null }))
     const e2 = (await sb.from('workout_exercises').upsert(rows)).error
     if (e2) return toast(e2.message)
     if (inPlace) {
@@ -100,8 +101,9 @@ export default function WorkoutsClient({ exercises, clients, workouts, usedIds }
 
   return (
     <>
-      <section className="card">
-        <div className="eh"><h3>{editId ? 'Modifica allenamento' : 'Nuovo allenamento'}</h3>{editId && <button className="x" onClick={reset}>Annulla</button>}</div>
+      {!building && !editId && <button className="btn" style={{ marginTop: 14 }} onClick={() => setBuilding(true)}>Nuovo allenamento</button>}
+      {(building || editId) && <section className="card">
+        <div className="eh"><h3>{editId ? 'Modifica allenamento' : 'Nuovo allenamento'}</h3><button className="x" onClick={reset}>Annulla</button></div>
         {editId && usedIds.includes(editId) && <p className="mu" style={{ marginTop: 6 }}>Questo allenamento è già stato svolto: le modifiche creano una nuova versione e non cambiano le sedute passate.</p>}
         <input className="tn" placeholder="Nome dell’allenamento, es. Giorno schiena" aria-label="Nome dell’allenamento" value={name} onChange={e => setName(e.target.value)} />
         {items.map((it, i) => (
@@ -109,13 +111,14 @@ export default function WorkoutsClient({ exercises, clients, workouts, usedIds }
             <div className="eh"><h3>{it.name}</h3><button className="x" onClick={() => setItems(items.filter((_, k) => k !== i))} aria-label={`Rimuovi ${it.name}`}>Rimuovi</button></div>
             <Stepper label="Serie" value={it.sets} onChange={d => patch(i, { sets: Math.max(1, it.sets + d) })} />
             <Stepper label="Rip." value={it.reps} onChange={d => patch(i, { reps: Math.max(1, it.reps + d) })} />
+            <Stepper label="Recupero" value={`${it.rest_seconds} s`} onChange={d => patch(i, { rest_seconds: Math.min(600, Math.max(0, it.rest_seconds + d * 15)) })} />
             <input className="mi" style={{ marginTop: 12 }} placeholder="Link video per questo esercizio" aria-label={`Link video: ${it.name}`} value={it.video_url} onChange={e => patch(i, { video_url: e.target.value })} />
           </div>
         ))}
         <button className="btn s" onClick={() => { setQ(''); setSheet('lib') }}>Aggiungi esercizio</button>
         <button className="btn" onClick={() => persist(false)}>{editId ? 'Aggiorna modello' : 'Salva modello'}</button>
         {editId && <button className="btn s" onClick={() => persist(true)}>Salva come nuova copia</button>}
-      </section>
+      </section>}
 
       <p className="mu" style={{ marginTop: 18 }}>{workouts.length} salvati · assegna ognuno a quanti clienti vuoi</p>
       {workouts.map(w => (

@@ -16,7 +16,7 @@ export default async function Oggi({ searchParams }: { searchParams: Promise<{ g
   const sel = g && /^\d{4}-\d{2}-\d{2}$/.test(g) ? g : today
   const week = weekDates(sel)
   const { data } = await sb.from('assignments')
-    .select('id, scheduled_on, workouts(name, workout_exercises(id, exercise_id, position, sets, reps, video_url, exercises(name, video_url)))')
+    .select('id, scheduled_on, workouts(name, workout_exercises(id, exercise_id, position, sets, reps, rest_seconds, video_url, exercises(name, video_url)))')
     .eq('client_id', user.id).in('scheduled_on', week)
   const all = (data ?? []) as unknown as A[]
   const a = all.find(x => x.scheduled_on === sel)
@@ -39,21 +39,21 @@ export default async function Oggi({ searchParams }: { searchParams: Promise<{ g
 
   return (
     <Shell links={clientLinks}>
-      <div className="eh" style={{ margin: '0 0 8px' }}>
+      <div className="wkbar">
         <Link className="back" style={{ padding: 0 }} href={`/oggi?g=${addDays(sel, -7)}`} aria-label="Settimana precedente">‹</Link>
-        <span className="mu">{fmtShort(week[0])} – {fmtShort(week[6])}</span>
-        <Link className="back" style={{ padding: 0 }} href={`/oggi?g=${addDays(sel, 7)}`} aria-label="Settimana successiva">›</Link>
-      </div>
-      <div className="dys" style={{ margin: '0 0 12px' }}>
+      <div className="dys">
         {week.map((d, i) => (
           <Link key={d} href={`/oggi?g=${d}`} className={`${d === sel ? 'on' : ''}${all.some(x => x.scheduled_on === d) ? ' hs' : ''}${d === today ? ' tdy' : ''}`} aria-label={weekdayName(d)}>{DAYS[i]}</Link>
         ))}
       </div>
+        <Link className="back" style={{ padding: 0 }} href={`/oggi?g=${addDays(sel, 7)}`} aria-label="Settimana successiva">›</Link>
+      </div>
+      <p className="mu" style={{ margin: '-4px 0 10px', textAlign: 'center' }}>{fmtShort(week[0])} – {fmtShort(week[6])}</p>
       {!a ? <Hero k="workout" title="Giorno di recupero" sub={`${weekdayName(sel)} · nessun allenamento assegnato`} /> : (
         <>
           <Hero k="workout" title={a.workouts.name} sub={`${weekdayName(sel)} · da Coach Raphi`} />
           {sel === today
-            ? <Logger assignmentId={a.id} clientId={user.id} workoutName={a.workouts.name} prev={prev} exercises={list.map(e => ({ id: e.id, name: e.exercises.name, sets: e.sets, reps: e.reps, video: e.video_url || e.exercises.video_url }))} logs={logs} />
+            ? <Logger assignmentId={a.id} clientId={user.id} workoutName={a.workouts.name} prev={prev} exercises={list.map(e => ({ id: e.id, name: e.exercises.name, sets: e.sets, reps: e.reps, rest: e.rest_seconds, video: e.video_url || e.exercises.video_url }))} logs={logs} />
             : <>
                 <p className="mu" style={{ marginTop: 12 }}>{sel < today ? (logs.length > 0 ? 'Allenamento completato.' : 'Giorno passato.') : 'Potrai registrare le serie il giorno stesso.'}</p>
                 <WorkoutPreview list={list} />

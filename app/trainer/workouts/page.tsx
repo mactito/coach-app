@@ -7,7 +7,7 @@ export default async function Workouts() {
   const [ex, cl, wo, used] = await Promise.all([
     sb.from('exercises').select('id, name, muscle, video_url').order('name'),
     sb.from('profiles').select('id, full_name').eq('role', 'client').order('full_name'),
-    sb.from('workouts').select('id, name, workout_exercises(id, exercise_id, sets, reps, video_url, position)').is('deleted_at', null).eq('is_custom', false).order('created_at', { ascending: false }),
+    sb.from('workouts').select('id, name, workout_exercises(id, exercise_id, sets, reps, rest_seconds, video_url, position)').is('deleted_at', null).eq('is_custom', false).order('created_at', { ascending: false }),
     sb.from('workouts_used').select('workout_id'),
   ])
   return (

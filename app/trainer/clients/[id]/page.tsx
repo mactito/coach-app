@@ -12,7 +12,7 @@ import { addDays, fmtDay, fmtShort, todayRome, weekDates, weekdayName } from '@/
 import { DAYS, DEFAULT_TARGET, type Meal } from '@/lib/nutrition'
 import { latestPhotos, loadLift, loadSessions } from '@/lib/sessions'
 
-type WE = SEx & { exercise_id: string; position: number; video_url: string | null }
+type WE = SEx & { exercise_id: string; position: number; rest_seconds: number; video_url: string | null }
 type A = { id: string; scheduled_on: string; workouts: { id: string; name: string; is_custom: boolean; workout_exercises: WE[] } }
 
 export default async function ClientPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ g?: string }> }) {
@@ -22,14 +22,15 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   const today = todayRome()
   const sel = g && /^\d{4}-\d{2}-\d{2}$/.test(g) ? g : today
   const week = weekDates(sel)
-  const [p, t, m, ses, lift, photos, wo, ex, asg] = await Promise.all([
+  const [p, t, m, ses, lift, photos, wo, ex, asg, cp] = await Promise.all([
     sb.from('profiles').select('full_name').eq('id', id).eq('role', 'client').single(),
     sb.from('nutrition_targets').select('kcal, protein, carbs, fat').eq('client_id', id).maybeSingle(),
     sb.from('meals').select('*').eq('client_id', id).order('position'),
     loadSessions(sb, [id]), loadLift(sb, id), latestPhotos(sb, id),
     sb.from('workouts').select('id, name').is('deleted_at', null).eq('is_custom', false).order('created_at', { ascending: false }),
     sb.from('exercises').select('id, name, muscle, video_url').order('name'),
-    sb.from('assignments').select('id, scheduled_on, workouts(id, name, is_custom, workout_exercises(id, exercise_id, position, sets, reps, video_url, exercises(name)))').eq('client_id', id).in('scheduled_on', week),
+    sb.from('assignments').select('id, scheduled_on, workouts(id, name, is_custom, workout_exercises(id, exercise_id, position, sets, reps, rest_seconds, video_url, exercises(name)))').eq('client_id', id).in('scheduled_on', week),
+    sb.from('client_profiles').select('age, weight_kg, height_cm, goal, experience, days_per_week, limitations').eq('client_id', id).maybeSingle(),
   ])
   if (!p.data) notFound()
   const name = p.data.full_name || 'Senza nome', first = name.split(' ')[0]
@@ -50,7 +51,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
 
   return (
     <Shell links={trainerLinks}>
-      <Link className="back" href="/trainer">‹ Clienti</Link>
+      <Link className="back" href="/trainer/clients">‹ Clienti</Link>
       <h1>{name}</h1>
 
       <section className="card">
@@ -62,7 +63,6 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
         <div className="dys">
           {week.map((d, i) => <Link key={d} href={`${base}?g=${d}`} className={cls(d)} aria-label={weekdayName(d)}>{DAYS[i]}</Link>)}
         </div>
-        <p className="mu" style={{ marginTop: 8 }}>Verde: svolto · arancione: saltato · sottolineato: in programma</p>
 
         <h3 style={{ marginTop: 16 }}>{dayLabel}{sel === today ? ' · oggi' : ''}</h3>
         {!a && (
@@ -74,7 +74,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
         {a && editable && (
           <>
             <PlanEditor key={a.id + a.workouts.id} assignmentId={a.id} workout={{ id: a.workouts.id, name: a.workouts.name, is_custom: a.workouts.is_custom }}
-              initial={list.map(e => ({ id: e.id, exercise_id: e.exercise_id, name: e.exercises.name, sets: e.sets, reps: e.reps, video_url: e.video_url }))}
+              initial={list.map(e => ({ id: e.id, exercise_id: e.exercise_id, name: e.exercises.name, sets: e.sets, reps: e.reps, rest_seconds: e.rest_seconds, video_url: e.video_url }))}
               library={ex.data ?? []} clientName={first} dayLabel={dayLabel} />
             <AssignClient clientId={id} clientName={first} workouts={wo.data ?? []} date={sel} label="Cambia allenamento" />
           </>
@@ -91,17 +91,32 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
         )}
       </section>
 
-      <section className="card">
-        <h3>Ultimo allenamento</h3>
-        <p className="mu" style={{ marginTop: 4 }}>{last ? `${fmtDay(last.date)} · ${last.name} · ${last.done}/${last.total} serie` : 'Nessun allenamento registrato ancora.'}</p>
-      </section>
-      <ProgressView sessions={sessions} lift={lift} />
-      <PhotoPair photos={photos} name={first} />
-      <AssignClient clientId={id} clientName={first} workouts={wo.data ?? []} />
-      <Link className="btn s" href={`/trainer/chat/${id}`}>Scrivi a {first}</Link>
-      <a className="btn s" href="#piano">Modifica piano alimentare</a>
-      <h3 id="piano" style={{ marginTop: 24 }}>Piano alimentare</h3>
-      <NutritionEditor clientId={id} clientName={first} initialMeals={(m.data ?? []) as Meal[]} initialTarget={t.data ?? DEFAULT_TARGET} />
+      <div className="g2" style={{ marginTop: 6 }}>
+        <AssignClient clientId={id} clientName={first} workouts={wo.data ?? []} />
+        <Link className="btn s" href={`/trainer/chat/${id}`}>Scrivi a {first}</Link>
+      </div>
+
+      <details className="fold"><summary>Profilo</summary><div>
+        {!cp.data ? <p className="mu">Il cliente non ha ancora compilato il questionario.</p> : (
+          <>
+            <div className="lr"><span>Età</span><b>{cp.data.age} anni</b></div>
+            <div className="lr"><span>Peso</span><b>{String(cp.data.weight_kg).replace('.', ',')} kg</b></div>
+            <div className="lr"><span>Altezza</span><b>{cp.data.height_cm} cm</b></div>
+            <div className="lr"><span>Obiettivo</span><b>{cp.data.goal}</b></div>
+            <div className="lr"><span>Livello</span><b>{cp.data.experience}</b></div>
+            <div className="lr"><span>Giorni a settimana</span><b>{cp.data.days_per_week}</b></div>
+            <div className="lr" style={{ flexDirection: 'column', gap: 2 }}><span>Infortuni o limitazioni</span><b>{cp.data.limitations || 'Nessuna indicata'}</b></div>
+          </>
+        )}
+      </div></details>
+      <details className="fold"><summary>Progressi</summary><div>
+        <p className="mu">{last ? `Ultimo allenamento: ${fmtDay(last.date)} · ${last.name} · ${last.done}/${last.total} serie` : 'Nessun allenamento registrato ancora.'}</p>
+        <ProgressView sessions={sessions} lift={lift} />
+      </div></details>
+      <details className="fold"><summary>Foto check-in</summary><div><PhotoPair photos={photos} name={first} /></div></details>
+      <details className="fold"><summary>Piano alimentare</summary><div>
+        <NutritionEditor clientId={id} clientName={first} initialMeals={(m.data ?? []) as Meal[]} initialTarget={t.data ?? DEFAULT_TARGET} />
+      </div></details>
     </Shell>
   )
 }

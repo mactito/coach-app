@@ -7,9 +7,10 @@ export async function requireRole(role: 'trainer' | 'client') {
   const sb = await createClient()
   const { data: { user } } = await sb.auth.getUser()
   if (!user) redirect('/login')
-  const { data: me } = await sb.from('profiles').select('role, consented_at').eq('id', user.id).single()
+  const { data: me } = await sb.from('profiles').select('role, consented_at, onboarded_at').eq('id', user.id).single()
   if (!me) redirect('/login')
   if (me.role !== role) redirect(me.role === 'trainer' ? '/trainer' : '/oggi')
   if (role === 'client' && !me.consented_at) redirect('/consenso')
+  if (role === 'client' && !me.onboarded_at) redirect('/benvenuto')
   return { sb, user }
 }

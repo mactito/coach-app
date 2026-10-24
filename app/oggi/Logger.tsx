@@ -5,7 +5,7 @@ import Demo from '@/components/Demo'
 import Sheet from '@/components/Sheet'
 import { toast } from '@/lib/toast'
 
-type Ex = { id: string; name: string; sets: number; reps: number; video: string | null }
+type Ex = { id: string; name: string; sets: number; reps: number; rest: number; video: string | null }
 type Log = { workout_exercise_id: string; set_no: number; kg: number | null; reps: number | null }
 type Row = { kg: string; reps: string; done: boolean }
 const k = (e: string, n: number) => `${e}:${n}`
@@ -23,7 +23,6 @@ export default function Logger({ assignmentId, clientId, workoutName, exercises,
     })
     return r
   })
-  const [rest, setRest] = useState(90)
   const [end, setEnd] = useState<number | null>(null)
   const [left, setLeft] = useState(0)
   const [sheet, setSheet] = useState(false)
@@ -50,7 +49,7 @@ export default function Logger({ assignmentId, clientId, workoutName, exercises,
     const { error } = await q
     if (error) return toast(error.message)
     edit(key, { done: !r.done })
-    if (!r.done) { setEnd(Date.now() + rest * 1000); setLeft(rest) } else setEnd(null)
+    if (!r.done && e.rest > 0) { setEnd(Date.now() + e.rest * 1000); setLeft(e.rest) } else setEnd(null)
   }
   async function finish(withNote: boolean) {
     if (withNote) {
@@ -66,14 +65,10 @@ export default function Logger({ assignmentId, clientId, workoutName, exercises,
   return (
     <>
       <div className="prog"><div className="bar"><i style={{ width: `${(done / Math.max(1, all.length)) * 100}%` }} /></div><span>{done} serie su {all.length}</span></div>
-      <div className="dys" style={{ gridTemplateColumns: 'auto repeat(3,1fr)', alignItems: 'center', marginTop: 10 }}>
-        <span className="mu" style={{ paddingRight: 4 }}>Recupero</span>
-        {[60, 90, 120].map(v => <button key={v} className={rest === v ? 'on' : ''} onClick={() => setRest(v)}>{v} s</button>)}
-      </div>
       {exercises.map(e => (
         <section key={e.id} className="card">
           <div className="eh"><h3>{e.name}</h3>{e.video && <Demo name={e.name} url={e.video} />}</div>
-          <p className="mu">{e.sets} serie da {e.reps} ripetizioni</p>
+          <p className="mu">{e.sets} serie da {e.reps} ripetizioni{e.rest > 0 ? ` · recupero ${e.rest} s` : ''}</p>
           <div className="sr h"><span>Serie</span><span>Ultima volta</span><span>kg</span><span>Rip.</span><span></span></div>
           {Array.from({ length: e.sets }, (_, i) => i + 1).map(n => {
             const key = k(e.id, n), r = rows[key]
