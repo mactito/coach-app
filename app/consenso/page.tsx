@@ -34,7 +34,9 @@ export default function Consenso() {
         <span>Ho letto l’informativa e acconsento al trattamento dei miei dati, anche relativi alla salute.</span>
       </label>
       <button className="btn" disabled={!ok} onClick={accept}>Continua</button>
+      <p className="mu" style={{ marginTop: 10 }}>Leggi l’<a href="/privacy" style={{ color: 'var(--ac)' }}>informativa completa</a>.</p>
       {err && <p className="err">{err}</p>}
+      <a className="back" style={{ marginTop: 14 }} href="/impostazioni">Non voglio continuare: gestisci o elimina il mio account</a>
     </div>
   )
 }

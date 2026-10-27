@@ -1,19 +1,15 @@
+import Link from 'next/link'
 import Nav, { type NavLink } from '@/components/Nav'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-
-async function logout() {
-  'use server'
-  const sb = await createClient()
-  await sb.auth.signOut()
-  redirect('/login')
-}
+import LogoutButton from '@/components/LogoutButton'
 
 export default function Shell({ links, children, chat }: { links: NavLink[]; children: React.ReactNode; chat?: boolean }) {
   return (
     <>
       <div className={chat ? 'scr ch' : 'scr'}>
-        <form action={logout}><button className="back" type="submit">Esci</button></form>
+        <div className="eh">
+          <LogoutButton />
+          <Link className="back" href="/impostazioni">Impostazioni</Link>
+        </div>
         {children}
       </div>
       <Nav links={links} />

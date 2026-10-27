@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import Demo from '@/components/Demo'
 import Sheet from '@/components/Sheet'
 import { toast } from '@/lib/toast'
+import { tap } from '@/lib/native'
 
 type Ex = { id: string; name: string; sets: number; reps: number; rest: number; video: string | null }
 type Log = { workout_exercise_id: string; set_no: number; kg: number | null; reps: number | null }
@@ -49,6 +50,7 @@ export default function Logger({ assignmentId, clientId, workoutName, exercises,
     const { error } = await q
     if (error) return toast(error.message)
     edit(key, { done: !r.done })
+    if (!r.done) void tap()
     if (!r.done && e.rest > 0) { setEnd(Date.now() + e.rest * 1000); setLeft(e.rest) } else setEnd(null)
   }
   async function finish(withNote: boolean) {

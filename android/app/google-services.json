@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "816811104999",
+    "project_id": "rafi-app-5aaae",
+    "storage_bucket": "rafi-app-5aaae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:816811104999:android:1fd9b5d9aae15d9651a042",
+        "android_client_info": {
+          "package_name": "it.coachraphi.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7oF4P9xU3FUvrCcY0cdBqQtP6O-qnJAA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

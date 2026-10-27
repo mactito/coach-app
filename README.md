@@ -27,12 +27,18 @@ Real accounts, a database, live chat and per-user security. The interface is in 
 - **Client page > week view:** the trainer can open any day. Past or started days are read-only and show what the client actually logged. Today (if not started) and future days can be edited for that client only: change sets and reps, add or remove exercises, swap the workout, or remove it from the day. Shared workout models are never changed by this.
 - **Editing a model that clients have already done** saves a new version, so past sessions stay as they were.
 
+## Store apps (Google Play and App Store)
+See `STORE_LAUNCH.md`. The project includes a Capacitor shell (`capacitor.config.ts`), app icons and splash artwork (`assets/`, `public/icons/`), an installable-web-app manifest, in-app account deletion (needs `SUPABASE_SERVICE_ROLE_KEY` on Vercel), public `/privacy` and `/supporto` pages, and a store checklist with listing text.
+
+## Push notifications
+See `PUSH_SETUP.md` (Firebase for Android, Apple key for iPhone, two Supabase functions, a webhook and a daily reminder). Needs `supabase/06_push.sql`.
+
 ## Not built yet
 Password reset, push notifications, payments, invite-only sign-up, account deletion.
 
 ## Setup
 1. Create a project at supabase.com.
-2. In **SQL Editor**, run these in order: `supabase/schema.sql`, `supabase/02_nutrition_chat.sql`, `supabase/03_photos.sql`, `supabase/04_plan_edit.sql`, `supabase/05_timer_onboarding.sql`. If you already ran some of them, run only the new ones. 
+2. In **SQL Editor**, run these in order: `supabase/schema.sql`, `supabase/02_nutrition_chat.sql`, `supabase/03_photos.sql`, `supabase/04_plan_edit.sql`, `supabase/05_timer_onboarding.sql`, `supabase/06_push.sql`. If you already ran some of them, run only the new ones. 
 3. **Project Settings > API:** copy the URL and anon key into `.env.local` (copy `.env.local.example`).
 4. `npm install` then `npm run dev`, open http://localhost:3000
 5. Sign up with Raphi's email.

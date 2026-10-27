@@ -20,8 +20,9 @@ export async function middleware(req: NextRequest) {
   })
   let user = null
   try { user = (await sb.auth.getUser()).data.user } catch { return res }
-  if (!user && !req.nextUrl.pathname.startsWith('/login') && !req.nextUrl.pathname.startsWith('/auth')) return NextResponse.redirect(new URL('/login', req.url))
+  const open = ['/login', '/auth', '/privacy', '/supporto'].some(x => req.nextUrl.pathname.startsWith(x))
+  if (!user && !open) return NextResponse.redirect(new URL('/login', req.url))
   return res
 }
 
-export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] }
+export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icons/|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)'] }
