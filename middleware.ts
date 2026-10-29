@@ -18,10 +18,10 @@ export async function middleware(req: NextRequest) {
       },
     },
   })
-  let user = null
-  try { user = (await sb.auth.getUser()).data.user } catch { return res }
+  let signedIn = false
+  try { signedIn = !!(await sb.auth.getClaims()).data?.claims } catch { return res }
   const open = ['/login', '/auth', '/privacy', '/supporto'].some(x => req.nextUrl.pathname.startsWith(x))
-  if (!user && !open) return NextResponse.redirect(new URL('/login', req.url))
+  if (!signedIn && !open) return NextResponse.redirect(new URL('/login', req.url))
   return res
 }
 

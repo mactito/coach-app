@@ -156,3 +156,6 @@ h1{font-size:24px}
 .wkbar{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin-bottom:12px}
 .wkbar .dys{margin:0}
 .wkbar a.back{font-size:22px;line-height:1}
+/* loading skeleton */
+.sk{background:linear-gradient(90deg,var(--ln) 0%,var(--acs) 50%,var(--ln) 100%);background-size:200% 100%;animation:sk 1.3s linear infinite;border-radius:14px}
+@keyframes sk{to{background-position:-200% 0}}

@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import Shell, { trainerLinks } from '@/components/Shell'
 import AssignClient from '@/components/AssignClient'
 import NutritionEditor from '@/components/NutritionEditor'
 import PhotoPair from '@/components/PhotoPair'
@@ -13,7 +12,7 @@ import { DAYS, DEFAULT_TARGET, type Meal } from '@/lib/nutrition'
 import { latestPhotos, loadLift, loadSessions } from '@/lib/sessions'
 
 type WE = SEx & { exercise_id: string; position: number; rest_seconds: number; video_url: string | null }
-type A = { id: string; scheduled_on: string; workouts: { id: string; name: string; is_custom: boolean; workout_exercises: WE[] } }
+type A = { id: string; scheduled_on: string; set_logs: { workout_exercise_id: string; set_no: number; kg: number | null; reps: number | null }[]; workouts: { id: string; name: string; is_custom: boolean; workout_exercises: WE[] } }
 
 export default async function ClientPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ g?: string }> }) {
   const { id } = await params
@@ -29,7 +28,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
     loadSessions(sb, [id]), loadLift(sb, id), latestPhotos(sb, id),
     sb.from('workouts').select('id, name').is('deleted_at', null).eq('is_custom', false).order('created_at', { ascending: false }),
     sb.from('exercises').select('id, name, muscle, video_url').order('name'),
-    sb.from('assignments').select('id, scheduled_on, workouts(id, name, is_custom, workout_exercises(id, exercise_id, position, sets, reps, rest_seconds, video_url, exercises(name)))').eq('client_id', id).in('scheduled_on', week),
+    sb.from('assignments').select('id, scheduled_on, workouts(id, name, is_custom, workout_exercises(id, exercise_id, position, sets, reps, rest_seconds, video_url, exercises(name))), set_logs(workout_exercise_id, set_no, kg, reps)').eq('client_id', id).in('scheduled_on', week),
     sb.from('client_profiles').select('age, weight_kg, height_cm, goal, experience, days_per_week, limitations').eq('client_id', id).maybeSingle(),
   ])
   if (!p.data) notFound()
@@ -38,7 +37,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   const byDate = new Map(sessions.map(s => [s.date, s]))
   const all = (asg.data ?? []) as unknown as A[]
   const a = all.find(x => x.scheduled_on === sel)
-  const logs = a ? (await sb.from('set_logs').select('workout_exercise_id, set_no, kg, reps').eq('assignment_id', a.id)).data ?? [] : []
+  const logs = a?.set_logs ?? []
   const list = a ? [...a.workouts.workout_exercises].sort((x, y) => x.position - y.position) : []
   const editable = !!a && sel >= today && logs.length === 0
   const last = sessions.filter(s => s.done > 0).pop()
@@ -50,7 +49,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   }
 
   return (
-    <Shell links={trainerLinks}>
+    <>
       <Link className="back" href="/trainer/clients">‹ Clienti</Link>
       <h1>{name}</h1>
 
@@ -117,6 +116,6 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
       <details className="fold"><summary>Piano alimentare</summary><div>
         <NutritionEditor clientId={id} clientName={first} initialMeals={(m.data ?? []) as Meal[]} initialTarget={t.data ?? DEFAULT_TARGET} />
       </div></details>
-    </Shell>
+    </>
   )
 }

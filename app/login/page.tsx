@@ -21,8 +21,8 @@ export default function Login() {
       : await sb.auth.signInWithPassword({ email, password })
     if (error) return setMsg(error.message)
     if (!data.session) return setMsg('Controlla la tua email per confermare l’account.')
-    router.push('/')
-    router.refresh()
+    const { data: me } = await sb.from('profiles').select('role').eq('id', data.session.user.id).single()
+    router.replace(me?.role === 'trainer' ? '/trainer' : '/oggi')
   }
 
   const bg = IMG.login ? `linear-gradient(180deg,rgba(10,14,22,.1),rgba(10,14,22,.75)),url(${IMG.login})` : `linear-gradient(135deg,${ART.login})`

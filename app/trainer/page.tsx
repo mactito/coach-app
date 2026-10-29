@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Shell, { trainerLinks } from '@/components/Shell'
 import Hero from '@/components/Hero'
 import { requireRole } from '@/lib/auth'
 import { todayRome, weekDates, weekdayName } from '@/lib/dates'
@@ -11,14 +10,14 @@ const when = (s: string) => new Date(s).toLocaleString('it-IT', { weekday: 'shor
 export default async function Dashboard() {
   const { sb } = await requireRole('trainer')
   const today = todayRome(), wk = weekDates()
-  const { data } = await sb.from('profiles').select('id, full_name').eq('role', 'client').order('full_name')
-  const cl = data ?? []
-  const name = new Map(cl.map(c => [c.id, c.full_name || 'Senza nome']))
-  const [map, fb, lastMsg] = await Promise.all([
-    loadSessions(sb, cl.map(c => c.id), 14),
+  const [{ data }, map, fb, lastMsg] = await Promise.all([
+    sb.from('profiles').select('id, full_name').eq('role', 'client').order('full_name'),
+    loadSessions(sb, null, 14),
     sb.from('messages').select('id, client_id, body, created_at').ilike('body', 'Dopo l%').order('created_at', { ascending: false }).limit(4),
     sb.from('messages').select('client_id, sender_id, created_at').order('created_at', { ascending: false }).limit(300),
   ])
+  const cl = data ?? []
+  const name = new Map(cl.map(c => [c.id, c.full_name || 'Senza nome']))
   const sessions = cl.flatMap(c => (map.get(c.id) ?? []).map(s => ({ ...s, client: c.id })))
   const todays = sessions.filter(s => s.date === today)
   const needs = cl.filter(c => !statusOf(map.get(c.id) ?? []).ok)
@@ -29,7 +28,7 @@ export default async function Dashboard() {
   const max = Math.max(1, ...planned)
 
   return (
-    <Shell links={trainerLinks}>
+    <>
       <Hero k="coach" title="Ciao, Coach Raphi" sub={weekdayName(today)} />
       <div className="st">
         <div><b>{cl.length}</b><span className="mu">clienti</span></div>
@@ -91,6 +90,6 @@ export default async function Dashboard() {
           ))}
         </section>
       )}
-    </Shell>
+    </>
   )
 }

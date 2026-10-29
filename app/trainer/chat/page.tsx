@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Shell, { trainerLinks } from '@/components/Shell'
 import { requireRole } from '@/lib/auth'
 
 export default async function Inbox() {
@@ -12,7 +11,7 @@ export default async function Inbox() {
   const when = (s: string) => new Date(s).toLocaleString('it-IT', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' })
   ;(ms.data ?? []).forEach(m => { if (!last.has(m.client_id)) last.set(m.client_id, m) })
   return (
-    <Shell links={trainerLinks}>
+    <>
       <h1>Messaggi</h1>
       <p className="mu">Parla con i clienti senza uscire dall’app</p>
       {(cl.data ?? []).map(c => {
@@ -28,6 +27,6 @@ export default async function Inbox() {
           </Link>
         )
       })}
-    </Shell>
+    </>
   )
 }

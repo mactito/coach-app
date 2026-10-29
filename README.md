@@ -65,3 +65,8 @@ Password reset, push notifications, payments, invite-only sign-up, account delet
 - `components/`: Chat, nutrition editor and viewer, shared shell
 - `app/trainer/`: clients, workouts, messages
 - `app/oggi`, `app/alimentazione`, `app/chat`: client screens
+
+## Speed
+- The session is checked from the signed token (no call to the auth server on each tap), pages load their data in one round trip where possible, and the menu and header stay on screen while the next page loads (skeleton placeholders).
+- **Put the website and the database in the same region.** In Supabase: Project Settings > General shows the region. In Vercel: Settings > Functions > Function Region. Pick the nearest match (for example Supabase Frankfurt = Vercel Frankfurt `fra1`, Ireland = Dublin `dub1`, London = `lhr1`, Paris = `cdg1`), then redeploy. If they are on different continents every query adds 100 to 200 ms.
+- Supabase projects made after mid-2025 use asymmetric JWT keys, which is what makes the local session check possible. Older projects fall back to the slower check automatically.

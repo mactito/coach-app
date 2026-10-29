@@ -1,4 +1,3 @@
-import Shell, { trainerLinks } from '@/components/Shell'
 import { requireRole } from '@/lib/auth'
 import WorkoutsClient from './WorkoutsClient'
 
@@ -11,10 +10,10 @@ export default async function Workouts() {
     sb.from('workouts_used').select('workout_id'),
   ])
   return (
-    <Shell links={trainerLinks}>
+    <>
       <h1>Allenamenti</h1>
       <p className="mu">Crea un allenamento una volta, assegnalo a chi vuoi.</p>
       <WorkoutsClient exercises={ex.data ?? []} clients={cl.data ?? []} workouts={wo.data ?? []} usedIds={(used.data ?? []).map(u => u.workout_id as string)} />
-    </Shell>
+    </>
   )
 }

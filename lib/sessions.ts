@@ -3,24 +3,21 @@ import { todayRome, weekDates } from '@/lib/dates'
 
 export type Session = { id: string; date: string; name: string; done: number; total: number }
 
-export async function loadSessions(sb: SupabaseClient, clientIds: string[], days = 70) {
+export async function loadSessions(sb: SupabaseClient, clientIds: string[] | null, days = 70) {
   const out = new Map<string, Session[]>()
-  clientIds.forEach(id => out.set(id, []))
-  if (!clientIds.length) return out
   const from = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10)
-  const { data: as } = await sb.from('assignments')
-    .select('id, client_id, scheduled_on, workouts(name, workout_exercises(sets))')
-    .in('client_id', clientIds).gte('scheduled_on', from).order('scheduled_on')
-  const ids = (as ?? []).map((a: any) => a.id as string)
-  const { data: logs } = ids.length ? await sb.from('set_logs').select('assignment_id').in('assignment_id', ids).limit(5000) : { data: [] as any[] }
-  const cnt = new Map<string, number>()
-  ;(logs ?? []).forEach((l: any) => cnt.set(l.assignment_id, (cnt.get(l.assignment_id) ?? 0) + 1))
+  let q = sb.from('assignments')
+    .select('id, client_id, scheduled_on, workouts(name, workout_exercises(sets)), set_logs(count)')
+    .gte('scheduled_on', from).order('scheduled_on')
+  if (clientIds) { if (!clientIds.length) return out; q = q.in('client_id', clientIds) }
+  const { data: as } = await q
   ;(as ?? []).forEach((a: any) => {
-    const w = a.workouts
-    out.get(a.client_id)?.push({
-      id: a.id, date: a.scheduled_on, name: w?.name ?? '', done: cnt.get(a.id) ?? 0,
+    const w = a.workouts, list = out.get(a.client_id) ?? []
+    list.push({
+      id: a.id, date: a.scheduled_on, name: w?.name ?? '', done: a.set_logs?.[0]?.count ?? 0,
       total: (w?.workout_exercises ?? []).reduce((s: number, e: any) => s + e.sets, 0),
     })
+    out.set(a.client_id, list)
   })
   return out
 }
